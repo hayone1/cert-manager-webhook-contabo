@@ -84,6 +84,10 @@ chart-lint: ## Lint the Helm chart and check the rendered manifests with kubecon
 	  go run github.com/yannh/kubeconform/cmd/kubeconform@v0.7.0 -strict -summary \
 	    -schema-location default \
 	    -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+	@# cert-manager refuses a commonName longer than 64 bytes; check with the longest name.
+	@cn=$$(helm template a-very-long-release-name-that-hits-the-fullname-limit $(CHART) | sed -n 's/^ *commonName: *//p' | tr -d '"'); \
+	  for c in $$cn; do [ $${#c} -le 64 ] || { echo "commonName too long ($${#c} bytes): $$c"; exit 1; }; done; \
+	  echo "commonName length ok: $$cn"
 
 .PHONY: docker-build
 docker-build: ## Build the image for your machine's platform.
