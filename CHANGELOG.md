@@ -6,6 +6,20 @@ follow [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-05
+
+### Fixed
+
+- Chart: when `ambientCredentials.secretName` is set, the install notes now
+  show how to create the ambient credentials Secret (with its key names) and
+  a ClusterIssuer without `secretName`. Before, they always showed the
+  `contabo-credentials` Secret. `make chart-lint` now checks the notes.
+
+### Changed
+
+- Plainer README, chart README and docs. `docs/configuration.md` has full
+  examples of every Secret format.
+
 ## [0.1.0] - 2026-11-05
 
 ### Added
@@ -30,5 +44,6 @@ follow [semantic versioning](https://semver.org/).
   maintainers.
 - Signed multi-arch images on GHCR and Docker Hub, signed OCI Helm chart.
 
-[Unreleased]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hayone1/cert-manager-webhook-contabo/releases/tag/v0.1.0

@@ -58,7 +58,7 @@ The same image, with the same digest, is also on
 Check the signature with cosign 3 or newer:
 
 ```sh
-cosign verify docker.io/hayone/cert-manager-webhook-contabo:0.1.0 \
+cosign verify docker.io/hayone/cert-manager-webhook-contabo:0.1.1 \
   --certificate-identity-regexp '^https://github.com/hayone1/cert-manager-webhook-contabo/.github/workflows/release.yml@refs/tags/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
