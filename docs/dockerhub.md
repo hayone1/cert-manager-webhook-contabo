@@ -1,13 +1,20 @@
 # cert-manager-webhook-contabo
 
-A [cert-manager](https://cert-manager.io) DNS-01 webhook for **Contabo DNS**.
-It lets cert-manager get free Let's Encrypt certificates, including
-wildcards (`*.example.com`), for domains whose DNS is hosted at Contabo.
+A [cert-manager](https://cert-manager.io) webhook for **Contabo DNS**.
+With this webhook, cert-manager can get free Let's Encrypt certificates
+for domains whose DNS records are kept at Contabo. This includes wildcard
+certificates (`*.example.com`).
 
-- Source, docs and issues: https://github.com/hayone1/cert-manager-webhook-contabo
+The webhook adds and removes the TXT record `_acme-challenge.<domain>`
+through the Contabo API. Let's Encrypt checks this record to see that you
+control the domain (the DNS-01 challenge).
+
+- Source code, docs and issues: https://github.com/hayone1/cert-manager-webhook-contabo
 - Install guide: https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/install.md
 
 ## Install with Helm
+
+This command installs the webhook with the image from Docker Hub:
 
 ```sh
 helm install cert-manager-webhook-contabo \
@@ -16,8 +23,8 @@ helm install cert-manager-webhook-contabo \
   --set image.repository=docker.io/hayone/cert-manager-webhook-contabo
 ```
 
-Then create a Secret with your Contabo API credentials and a ClusterIssuer
-with this solver:
+Then create a Secret with your Contabo API credentials, and a
+ClusterIssuer with this solver:
 
 ```yaml
 solvers:
@@ -31,17 +38,24 @@ solvers:
 
 ## Tags
 
-Tags have no `v`: `0.1.0`, `0.1`, `latest`. The same image (same digest) is
-on `ghcr.io/hayone1/cert-manager-webhook-contabo`.
+| Tag | Example | Changes later? |
+|---|---|---|
+| exact version | `0.1.0` and `v0.1.0` | never |
+| minor version | `0.1` | yes, to the newest patch |
+| `latest` | | yes, to the newest release |
+
+The same image, with the same digest, is also on
+`ghcr.io/hayone1/cert-manager-webhook-contabo`.
 
 ## Security
 
-- Built by GitHub Actions only, for `linux/amd64` and `linux/arm64`.
-- Signed with cosign (keyless), with SBOM and build provenance.
-- Distroless base: no shell, no package manager, runs as user 65532,
+- GitHub Actions builds every image, for `linux/amd64` and `linux/arm64`.
+- Every image is signed with cosign (keyless) and has an SBOM and build
+  provenance.
+- The image has no shell and no package manager. It runs as user 65532 and
   works with a read-only file system.
 
-Check the signature (cosign 3 or newer):
+Check the signature with cosign 3 or newer:
 
 ```sh
 cosign verify docker.io/hayone/cert-manager-webhook-contabo:0.1.0 \
@@ -51,4 +65,4 @@ cosign verify docker.io/hayone/cert-manager-webhook-contabo:0.1.0 \
 
 ## License
 
-Apache-2.0. Not made or supported by Contabo.
+Apache-2.0. Contabo does not make or support this project.

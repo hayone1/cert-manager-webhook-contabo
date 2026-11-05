@@ -4,7 +4,7 @@ Thanks for helping! Bug reports, docs fixes and code are all welcome.
 
 ## Before you start
 
-- For a small fix (typo, clear bug), just open a pull request.
+- For a small fix (typo, clear bug), open a pull request directly.
 - For a bigger change (new setting, new behavior), open an issue first so we
   can agree on the idea before you spend time on it.
 - Be kind. See the [code of conduct](CODE_OF_CONDUCT.md).
@@ -33,7 +33,7 @@ make fmt           # format the code
 ```
 
 Everything runs against a fake Contabo API (`internal/contabo/contabotest`)
-that copies the real API's quirks, plus a small DNS server that serves the
+that copies how the real Contabo API behaves, plus a small DNS server that serves the
 fake's records. See [docs/development.md](docs/development.md) for all test
 levels, including the end-to-end test in kind.
 

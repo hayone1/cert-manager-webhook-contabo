@@ -165,7 +165,7 @@ What this means:
 - So if anyone asks a server for `_acme-challenge.<name>` *before* the record
   exists (cert-manager's own zone lookup, or an early propagation check),
   that server may keep answering "no record" for a minute or two. cert-manager
-  checks every 10 seconds and simply waits, so this only adds time.
+  checks every 10 seconds and waits, so this only adds time.
 - In the end-to-end test on a real cluster with Let's Encrypt staging, a
   certificate for one name plus its wildcard took the time shown in
   [development.md](development.md#tests-against-the-real-contabo-api).
