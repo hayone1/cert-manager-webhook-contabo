@@ -31,6 +31,8 @@ GitHub Actions, never on a laptop.
 4. In a pull request:
    - set `version` and `appVersion` in `charts/cert-manager-webhook-contabo/Chart.yaml`
      to the new version (without `v`),
+   - in the same file, set the image tag in `artifacthub.io/images` to the
+     same version, and list the changes in `artifacthub.io/changes`,
    - update [CHANGELOG.md](../CHANGELOG.md).
 5. Merge it, then tag the merge commit:
 
@@ -107,3 +109,34 @@ helm install cert-manager-webhook-contabo \
 - Secret scanning, push protection, private vulnerability reporting and
   Dependabot alerts on.
 - No Contabo secrets anywhere in GitHub.
+
+## Artifact Hub
+
+The chart is listed on [Artifact Hub](https://artifacthub.io), a search site
+for Helm charts. Artifact Hub reads the chart from GHCR on its own, so a new
+release shows up there within about 30 minutes.
+
+One-time setup (already done for this repository):
+
+1. Sign in to artifacthub.io with GitHub.
+2. Control Panel, **Add repository**: kind **Helm charts**, name
+   `cert-manager-webhook-contabo`, URL
+   `oci://ghcr.io/hayone1/charts/cert-manager-webhook-contabo`.
+3. Copy the repository ID that Artifact Hub shows, and put it in
+   `charts/artifacthub-repo.yml`:
+
+   ```yaml
+   repositoryID: <the ID>
+   owners:
+     - name: hayone1
+       email: <the email of your Artifact Hub account>
+   ```
+
+4. Merge that file into `main`. The
+   [`artifacthub.yml`](../.github/workflows/artifacthub.yml) workflow pushes
+   it to GHCR as the tag `artifacthub.io`. Artifact Hub then shows the
+   repository as **Verified Publisher**.
+
+Artifact Hub also scans the image listed in the chart's
+`artifacthub.io/images` annotation. Keep its tag equal to `appVersion`; the
+release workflow checks this.
