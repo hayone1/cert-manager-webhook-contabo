@@ -1,12 +1,13 @@
 # cert-manager-webhook-contabo Helm chart
 
-Installs the [cert-manager](https://cert-manager.io) DNS-01 webhook for
-Contabo DNS. With it, cert-manager can get Let's Encrypt certificates,
-including wildcards, for domains hosted at Contabo.
+This chart installs a [cert-manager](https://cert-manager.io) webhook for
+Contabo DNS. With this webhook, cert-manager can get Let's Encrypt
+certificates for domains whose DNS records are kept at Contabo. This
+includes wildcard certificates.
 
 ## Install
 
-cert-manager must already be installed.
+cert-manager must be installed first.
 
 ```sh
 helm install cert-manager-webhook-contabo \
@@ -14,26 +15,27 @@ helm install cert-manager-webhook-contabo \
   --namespace cert-manager
 ```
 
-Then create a Secret with your Contabo API credentials and an issuer. The
-chart prints both after installing; the full guide is
-[docs/install.md](https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/install.md).
+Next, create a Secret with your Contabo API credentials, and an issuer.
+After the install, the chart prints an example of both. The
+[install guide](https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/install.md)
+explains every step.
 
 ## Values
 
-Every value is explained in [values.yaml](values.yaml) and in
-[docs/configuration.md](https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/configuration.md#2-helm-values).
-The most important ones:
+[values.yaml](values.yaml) and the
+[configuration reference](https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/configuration.md#2-helm-values)
+explain every value. These are the most important values:
 
 | Value | Default | Meaning |
 |---|---|---|
-| `groupName` | `contabo.acme.codejourney.io` | Must match `webhook.groupName` in your issuers. |
-| `certManager.namespace` | `cert-manager` | cert-manager's namespace; ClusterIssuer Secrets live here. |
-| `certManager.serviceAccountName` | `cert-manager` | cert-manager's ServiceAccount. |
-| `secretNames` | `[contabo-credentials]` | Secrets the webhook may read in cert-manager's namespace. |
-| `extraSecretAccess` | `[]` | Secrets it may read in other namespaces (for namespaced Issuers). |
-| `ambientCredentials.secretName` | `""` | Credentials for issuers that set no `secretName`. |
-| `replicaCount` / `podDisruptionBudget.enabled` | `1` / `false` | High availability. |
-| `logLevel` | `2` | `4` logs every Contabo API call. |
+| `groupName` | `contabo.acme.codejourney.io` | Must be the same as `webhook.groupName` in your issuers. |
+| `certManager.namespace` | `cert-manager` | The namespace of cert-manager. The Secrets of ClusterIssuers must be in this namespace. |
+| `certManager.serviceAccountName` | `cert-manager` | The ServiceAccount of cert-manager. Only this ServiceAccount may call the webhook. |
+| `secretNames` | `[contabo-credentials]` | The Secrets that the webhook may read in the namespace of cert-manager. |
+| `extraSecretAccess` | `[]` | The Secrets that the webhook may read in other namespaces, for namespaced Issuers. |
+| `ambientCredentials.secretName` | `""` | A Secret with credentials for issuers that name no `secretName`. |
+| `replicaCount` / `podDisruptionBudget.enabled` | `1` / `false` | Run more than one webhook pod, and keep one running during node drains. |
+| `logLevel` | `2` | `2` logs one line per record. `4` logs every Contabo API call. |
 
 ## Check the chart signature
 
