@@ -6,6 +6,8 @@ follow [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-05
+
 ### Added
 
 - cert-manager DNS-01 webhook for Contabo DNS (`solverName: contabo`,
@@ -27,3 +29,6 @@ follow [semantic versioning](https://semver.org/).
 - Real-mode tests against the Contabo API and Let's Encrypt staging for
   maintainers.
 - Signed multi-arch images on GHCR and Docker Hub, signed OCI Helm chart.
+
+[Unreleased]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/hayone1/cert-manager-webhook-contabo/releases/tag/v0.1.0
