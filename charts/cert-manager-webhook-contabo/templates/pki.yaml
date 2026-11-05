@@ -23,7 +23,8 @@ spec:
   duration: {{ .Values.pki.caDuration }}
   issuerRef:
     name: {{ include "cmwc.selfSignedIssuer" . }}
-  commonName: "ca.{{ include "cmwc.fullname" . }}.cert-manager"
+  # cert-manager refuses a commonName longer than 64 bytes.
+  commonName: {{ printf "ca.%s" (include "cmwc.fullname" .) | trunc 64 | trimSuffix "-" | quote }}
   isCA: true
   privateKey:
     algorithm: ECDSA
