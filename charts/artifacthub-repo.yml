@@ -1,0 +1,6 @@
+# Artifact Hub repository metadata. The artifacthub.yml workflow pushes this
+# file to GHCR as the tag "artifacthub.io". See docs/releasing.md#artifact-hub.
+repositoryID: ce35716b-2b16-449e-b162-7a4fe7d1e502
+owners:
+  - name: hayone1
+    email: boluwatife.morawo@stu.cu.edu.ng

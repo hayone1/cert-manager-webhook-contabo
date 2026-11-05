@@ -116,7 +116,7 @@ The chart is listed on [Artifact Hub](https://artifacthub.io), a search site
 for Helm charts. Artifact Hub reads the chart from GHCR on its own, so a new
 release shows up there within about 30 minutes.
 
-One-time setup (already done for this repository):
+One-time setup (done on 2026-11-05 for this repository):
 
 1. Sign in to artifacthub.io with GitHub.
 2. Control Panel, **Add repository**: kind **Helm charts**, name
