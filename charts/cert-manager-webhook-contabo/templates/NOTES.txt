@@ -1,15 +1,34 @@
 The Contabo DNS-01 webhook is installed.
+{{- $ambient := .Values.ambientCredentials.secretName }}
+{{- $secret := first (.Values.secretNames | default (list "contabo-credentials")) }}
+{{- $keys := .Values.ambientCredentials.keys }}
+{{- if $ambient }}
+
+1. Put your Contabo API credentials (https://my.contabo.com/api/details) in
+   the ambient credentials Secret "{{ $ambient }}" in the "{{ .Release.Namespace }}" namespace:
+
+   kubectl -n {{ .Release.Namespace }} create secret generic {{ $ambient }} \
+     --from-literal={{ $keys.clientID }}='INT-...' \
+     --from-literal={{ $keys.clientSecret }}='...' \
+     --from-literal={{ $keys.apiUser }}='you@example.com' \
+     --from-literal={{ $keys.apiPassword }}='...'
+
+2. Create a ClusterIssuer that uses the webhook. It names no Secret, so the
+   webhook uses the ambient credentials. A namespaced Issuer cannot use them
+   unless cert-manager runs with --issuer-ambient-credentials.
+{{- else }}
 
 1. Put your Contabo API credentials (https://my.contabo.com/api/details) in a
    Secret in the "{{ .Values.certManager.namespace }}" namespace:
 
-   kubectl -n {{ .Values.certManager.namespace }} create secret generic {{ first (.Values.secretNames | default (list "contabo-credentials")) }} \
+   kubectl -n {{ .Values.certManager.namespace }} create secret generic {{ $secret }} \
      --from-literal=client-id='INT-...' \
      --from-literal=client-secret='...' \
      --from-literal=api-user='you@example.com' \
      --from-literal=api-password='...'
 
 2. Create a ClusterIssuer that uses the webhook:
+{{- end }}
 
    apiVersion: cert-manager.io/v1
    kind: ClusterIssuer
@@ -26,8 +45,10 @@ The Contabo DNS-01 webhook is installed.
              webhook:
                groupName: {{ .Values.groupName }}
                solverName: contabo
+{{- if not $ambient }}
                config:
-                 secretName: {{ first (.Values.secretNames | default (list "contabo-credentials")) }}
+                 secretName: {{ $secret }}
+{{- end }}
 
 3. Check that the webhook is ready:
 

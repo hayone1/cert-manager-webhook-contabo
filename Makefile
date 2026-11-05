@@ -88,6 +88,8 @@ chart-lint: ## Lint the Helm chart and check the rendered manifests with kubecon
 	@cn=$$(helm template a-very-long-release-name-that-hits-the-fullname-limit $(CHART) | sed -n 's/^ *commonName: *//p' | tr -d '"'); \
 	  for c in $$cn; do [ $${#c} -le 64 ] || { echo "commonName too long ($${#c} bytes): $$c"; exit 1; }; done; \
 	  echo "commonName length ok: $$cn"
+	@# The install notes must match the credentials setup: with ambient credentials the issuer names no Secret.
+	bash test/chart/check-notes.sh $(CHART)
 
 .PHONY: docker-build
 docker-build: ## Build the image for your machine's platform.

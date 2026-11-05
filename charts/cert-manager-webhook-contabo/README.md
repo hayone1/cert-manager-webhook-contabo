@@ -40,7 +40,7 @@ explain every value. These are the most important values:
 ## Check the chart signature
 
 ```sh
-cosign verify ghcr.io/hayone1/charts/cert-manager-webhook-contabo:0.1.0 \
+cosign verify ghcr.io/hayone1/charts/cert-manager-webhook-contabo:0.1.1 \
   --certificate-identity-regexp '^https://github.com/hayone1/cert-manager-webhook-contabo/.github/workflows/release.yml@refs/tags/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
