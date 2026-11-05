@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "cmwc.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+---
+# Lets the webhook read the API server's request-header CA, so it can check
+# that requests really come from the Kubernetes API server.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "cmwc.fullname" . }}:webhook-authentication-reader
+  namespace: kube-system
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "cmwc.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+---
+# Lets the webhook ask the API server whether a caller may use it.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "cmwc.fullname" . }}:auth-delegator
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "cmwc.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+---
+# Lets cert-manager call the webhook. Nobody else gets this permission.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "cmwc.fullname" . }}:domain-solver
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - {{ .Values.groupName }}
+    resources:
+      - "*"
+    verbs:
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "cmwc.fullname" . }}:domain-solver
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "cmwc.fullname" . }}:domain-solver
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.certManager.serviceAccountName }}
+    namespace: {{ .Values.certManager.namespace }}
+{{- /*
+Read access to credential Secrets, by name only. One Role per namespace:
+cert-manager's namespace (for ClusterIssuers) plus extraSecretAccess.
+*/}}
+{{- $access := dict }}
+{{- if .Values.secretNames }}
+{{- $_ := set $access .Values.certManager.namespace .Values.secretNames }}
+{{- end }}
+{{- range .Values.extraSecretAccess }}
+{{- if not .namespace }}{{ fail "every extraSecretAccess entry needs a namespace" }}{{ end }}
+{{- if not .secretNames }}{{ fail (printf "extraSecretAccess for namespace %q needs at least one name in secretNames" .namespace) }}{{ end }}
+{{- $_ := set $access .namespace (concat (get $access .namespace | default list) .secretNames | uniq) }}
+{{- end }}
+{{- range $namespace, $names := $access }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "cmwc.fullname" $ }}:secret-reader
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "cmwc.labels" $ | nindent 4 }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      {{- range $names }}
+      - {{ . | quote }}
+      {{- end }}
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "cmwc.fullname" $ }}:secret-reader
+  namespace: {{ $namespace }}
+  labels:
+    {{- include "cmwc.labels" $ | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "cmwc.fullname" $ }}:secret-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "cmwc.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+{{- end }}

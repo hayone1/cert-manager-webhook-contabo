@@ -1,0 +1,10 @@
+# Only send what the build needs. Everything else stays out of the
+# build context, so secrets can never end up in an image layer.
+*
+!go.mod
+!go.sum
+!cmd/
+!internal/
+cmd/**/*_test.go
+internal/**/*_test.go
+internal/contabo/contabotest/

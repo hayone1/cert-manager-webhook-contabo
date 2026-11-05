@@ -1,0 +1,38 @@
+The Contabo DNS-01 webhook is installed.
+
+1. Put your Contabo API credentials (https://my.contabo.com/api/details) in a
+   Secret in the "{{ .Values.certManager.namespace }}" namespace:
+
+   kubectl -n {{ .Values.certManager.namespace }} create secret generic {{ first (.Values.secretNames | default (list "contabo-credentials")) }} \
+     --from-literal=client-id='INT-...' \
+     --from-literal=client-secret='...' \
+     --from-literal=api-user='you@example.com' \
+     --from-literal=api-password='...'
+
+2. Create a ClusterIssuer that uses the webhook:
+
+   apiVersion: cert-manager.io/v1
+   kind: ClusterIssuer
+   metadata:
+     name: letsencrypt-staging
+   spec:
+     acme:
+       server: https://acme-staging-v02.api.letsencrypt.org/directory
+       email: you@example.com
+       privateKeySecretRef:
+         name: letsencrypt-staging-account
+       solvers:
+         - dns01:
+             webhook:
+               groupName: {{ .Values.groupName }}
+               solverName: contabo
+               config:
+                 secretName: {{ first (.Values.secretNames | default (list "contabo-credentials")) }}
+
+3. Check that the webhook is ready:
+
+   kubectl get apiservice v1alpha1.{{ .Values.groupName }}
+
+   AVAILABLE must say "True".
+
+Guide: https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/install.md

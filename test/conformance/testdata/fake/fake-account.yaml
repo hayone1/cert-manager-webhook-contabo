@@ -1,0 +1,12 @@
+# Credentials of the fake Contabo API (internal/contabo/contabotest).
+# They are not secret and only work against the fake.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: contabo-credentials
+type: Opaque
+stringData:
+  client-id: INT-test
+  client-secret: test-secret
+  api-user: user@example.com
+  api-password: test-password

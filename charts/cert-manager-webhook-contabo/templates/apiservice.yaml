@@ -1,0 +1,22 @@
+{{- include "cmwc.validate" . -}}
+# Registers the webhook as an extension of the Kubernetes API. cert-manager
+# calls it through the API server at /apis/<groupName>/v1alpha1/contabo.
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1alpha1.{{ .Values.groupName }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+  annotations:
+    # cert-manager's cainjector copies the CA of the serving certificate here,
+    # so the API server trusts the webhook's HTTPS certificate.
+    cert-manager.io/inject-ca-from: "{{ .Release.Namespace }}/{{ include "cmwc.servingCertificate" . }}"
+spec:
+  group: {{ .Values.groupName }}
+  groupPriorityMinimum: 1000
+  versionPriority: 15
+  service:
+    name: {{ include "cmwc.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+    port: {{ .Values.service.port }}
+  version: v1alpha1

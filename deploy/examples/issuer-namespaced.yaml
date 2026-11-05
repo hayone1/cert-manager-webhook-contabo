@@ -1,0 +1,23 @@
+# A namespaced Issuer with its own Contabo account.
+# The Secret must be in the same namespace (team-a), and the webhook must be
+# allowed to read it:
+#   helm upgrade ... --set 'extraSecretAccess[0].namespace=team-a' \
+#                    --set 'extraSecretAccess[0].secretNames[0]=contabo-credentials'
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: team-a
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: team-a@example.com
+    privateKeySecretRef:
+      name: letsencrypt-staging-account
+    solvers:
+      - dns01:
+          webhook:
+            groupName: contabo.acme.codejourney.io
+            solverName: contabo
+            config:
+              secretName: contabo-credentials

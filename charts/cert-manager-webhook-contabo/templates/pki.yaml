@@ -1,0 +1,63 @@
+# The webhook serves HTTPS. cert-manager itself makes its certificate:
+# a self-signed issuer makes a small CA, and the CA signs the serving
+# certificate. The CA is only used for this webhook.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "cmwc.selfSignedIssuer" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "cmwc.rootCACertificate" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "cmwc.rootCACertificate" . }}
+  duration: {{ .Values.pki.caDuration }}
+  issuerRef:
+    name: {{ include "cmwc.selfSignedIssuer" . }}
+  commonName: "ca.{{ include "cmwc.fullname" . }}.cert-manager"
+  isCA: true
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "cmwc.rootCAIssuer" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+spec:
+  ca:
+    secretName: {{ include "cmwc.rootCACertificate" . }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "cmwc.servingCertificate" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "cmwc.servingCertificate" . }}
+  duration: {{ .Values.pki.servingCertificateDuration }}
+  issuerRef:
+    name: {{ include "cmwc.rootCAIssuer" . }}
+  dnsNames:
+    - {{ include "cmwc.fullname" . }}
+    - {{ include "cmwc.fullname" . }}.{{ .Release.Namespace }}
+    - {{ include "cmwc.fullname" . }}.{{ .Release.Namespace }}.svc
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always

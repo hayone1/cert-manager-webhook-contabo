@@ -1,0 +1,14 @@
+# A certificate for example.com and every name one level below it.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-com
+  namespace: default
+spec:
+  secretName: example-com-tls
+  dnsNames:
+    - example.com
+    - "*.example.com"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging

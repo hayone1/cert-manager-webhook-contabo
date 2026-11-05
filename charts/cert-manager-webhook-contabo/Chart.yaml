@@ -1,0 +1,41 @@
+apiVersion: v2
+name: cert-manager-webhook-contabo
+description: cert-manager DNS-01 webhook for Contabo DNS. Get Let's Encrypt certificates, including wildcards, for domains hosted at Contabo.
+type: application
+# The chart version and the app version move together: chart 0.1.0 runs image 0.1.0.
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.27.0-0"
+home: https://github.com/hayone1/cert-manager-webhook-contabo
+sources:
+  - https://github.com/hayone1/cert-manager-webhook-contabo
+icon: https://raw.githubusercontent.com/cert-manager/cert-manager/master/logo/logo-small.png
+keywords:
+  - cert-manager
+  - acme
+  - dns01
+  - letsencrypt
+  - contabo
+  - webhook
+maintainers:
+  - name: hayone1
+    url: https://github.com/hayone1
+annotations:
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/category: security
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://github.com/hayone1/cert-manager-webhook-contabo#readme
+    - name: Verify a release (cosign)
+      url: https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/releasing.md#check-a-release
+  # Artifact Hub scans these images for vulnerabilities. Keep the tag equal to appVersion.
+  artifacthub.io/images: |
+    - name: cert-manager-webhook-contabo
+      image: ghcr.io/hayone1/cert-manager-webhook-contabo:0.1.0
+      platforms:
+        - linux/amd64
+        - linux/arm64
+  artifacthub.io/changes: |
+    - kind: added
+      description: First release

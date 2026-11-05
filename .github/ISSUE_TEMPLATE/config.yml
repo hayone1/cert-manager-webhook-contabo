@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/hayone1/cert-manager-webhook-contabo/security/advisories/new
+    about: Please report security problems privately, not in a public issue.
+  - name: Ask a question
+    url: https://github.com/hayone1/cert-manager-webhook-contabo/discussions
+    about: Not sure if it is a bug? Ask in Discussions first.
+  - name: cert-manager documentation
+    url: https://cert-manager.io/docs/
+    about: Questions about cert-manager itself (issuers, certificates, ACME).

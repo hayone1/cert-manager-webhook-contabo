@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cmwc.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cmwc.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "cmwc.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cmwc.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "cmwc.fullname" . }}
+      # The webhook uses its ServiceAccount token to check who calls it and
+      # to read credential Secrets.
+      automountServiceAccountToken: true
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: webhook
+          image: {{ include "cmwc.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --secure-port={{ .Values.securePort }}
+            - --tls-cert-file=/tls/tls.crt
+            - --tls-private-key-file=/tls/tls.key
+            - --v={{ .Values.logLevel }}
+          env:
+            - name: GROUP_NAME
+              value: {{ .Values.groupName | quote }}
+            {{- with .Values.contabo }}
+            {{- if .apiURL }}
+            - name: CONTABO_API_URL
+              value: {{ .apiURL | quote }}
+            {{- end }}
+            {{- if .authURL }}
+            - name: CONTABO_AUTH_URL
+              value: {{ .authURL | quote }}
+            {{- end }}
+            {{- if ne (toString .rateLimit) "" }}
+            - name: CONTABO_RATE_LIMIT
+              value: {{ .rateLimit | toString | quote }}
+            {{- end }}
+            {{- if ne (toString .maxRetries) "" }}
+            - name: CONTABO_MAX_RETRIES
+              value: {{ .maxRetries | toString | quote }}
+            {{- end }}
+            {{- if .operationTimeout }}
+            - name: CONTABO_OPERATION_TIMEOUT
+              value: {{ .operationTimeout | quote }}
+            {{- end }}
+            {{- if .requestTimeout }}
+            - name: CONTABO_REQUEST_TIMEOUT
+              value: {{ .requestTimeout | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.ambientCredentials }}
+            {{- if .secretName }}
+            - name: CONTABO_CLIENT_ID
+              valueFrom: { secretKeyRef: { name: {{ .secretName | quote }}, key: {{ .keys.clientID | quote }} } }
+            - name: CONTABO_CLIENT_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .secretName | quote }}, key: {{ .keys.clientSecret | quote }} } }
+            - name: CONTABO_API_USER
+              valueFrom: { secretKeyRef: { name: {{ .secretName | quote }}, key: {{ .keys.apiUser | quote }} } }
+            - name: CONTABO_API_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .secretName | quote }}, key: {{ .keys.apiPassword | quote }} } }
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: https
+              containerPort: {{ .Values.securePort }}
+              protocol: TCP
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: certs
+              mountPath: /tls
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "cmwc.servingCertificate" . }}
+        # The root file system is read-only; the server may write small
+        # temporary files here.
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

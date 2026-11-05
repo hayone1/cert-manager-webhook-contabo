@@ -1,0 +1,57 @@
+# Every option turned on. Used by `make chart-lint`, chart-testing and
+# kubeconform in CI. Not a recommended setup.
+groupName: contabo.acme.example.org
+secretNames:
+  - contabo-credentials
+  - contabo-credentials-2
+extraSecretAccess:
+  - namespace: team-a
+    secretNames: [contabo-credentials]
+  - namespace: cert-manager
+    secretNames: [contabo-credentials, extra]
+ambientCredentials:
+  secretName: contabo-ambient
+contabo:
+  rateLimit: 5
+  maxRetries: 0
+  operationTimeout: 30s
+  requestTimeout: 10s
+logLevel: 4
+replicaCount: 2
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+image:
+  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+imagePullSecrets:
+  - name: registry
+extraEnv:
+  - name: EXTRA
+    value: "1"
+podAnnotations:
+  example.com/note: test
+podLabels:
+  team: a
+priorityClassName: system-cluster-critical
+nodeSelector:
+  kubernetes.io/os: linux
+tolerations:
+  - key: example.com/dedicated
+    operator: Exists
+    effect: NoSchedule
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: cert-manager-webhook-contabo
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: cert-manager-webhook-contabo

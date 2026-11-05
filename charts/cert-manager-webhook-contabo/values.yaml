@@ -1,0 +1,157 @@
+# Default values for cert-manager-webhook-contabo.
+# Full explanation: https://github.com/hayone1/cert-manager-webhook-contabo/blob/main/docs/configuration.md
+
+# -- The API group of the webhook. Your issuers must use the same value in
+# `webhook.groupName`. It is only a name for the Kubernetes API; nothing is
+# looked up in DNS. Change it only if another webhook in your cluster
+# already uses it. Changing it later breaks existing issuers.
+groupName: contabo.acme.codejourney.io
+
+certManager:
+  # -- The namespace cert-manager runs in. For a ClusterIssuer, cert-manager
+  # reads Secrets from its "cluster resource namespace", which is this
+  # namespace unless you changed `--cluster-resource-namespace`.
+  namespace: cert-manager
+  # -- The ServiceAccount of the cert-manager controller. It is allowed to
+  # call this webhook.
+  serviceAccountName: cert-manager
+
+# -- Secrets the webhook may read in `certManager.namespace`. List every
+# Secret your ClusterIssuers name in `config.secretName`. The webhook gets
+# `get` on these names only, not on all Secrets.
+secretNames:
+  - contabo-credentials
+
+# -- Secrets the webhook may read in other namespaces, for namespaced
+# Issuers. Each entry creates a Role and RoleBinding in that namespace.
+# The namespace must exist before you install the chart.
+extraSecretAccess: []
+#  - namespace: team-a
+#    secretNames:
+#      - contabo-credentials
+
+# Credentials for issuers that set no `secretName` ("ambient credentials").
+# cert-manager only lets ClusterIssuers use them by default, so a namespaced
+# Issuer can never borrow the cluster admin's Contabo account.
+ambientCredentials:
+  # -- A Secret in the release namespace with the keys below. Empty: no
+  # ambient credentials.
+  secretName: ""
+  keys:
+    clientID: client-id
+    clientSecret: client-secret
+    apiUser: api-user
+    apiPassword: api-password
+
+# Settings for the Contabo API client. Empty values use the defaults.
+contabo:
+  # -- Contabo API URL. Only change it to test against a fake API.
+  apiURL: ""
+  # -- Contabo login (token) URL. Only change it to test against a fake API.
+  authURL: ""
+  # -- Most API requests per second, per Contabo account (Contabo allows about 15). Default 10.
+  rateLimit: ""
+  # -- How often a failed API request is retried within one call. Default 4.
+  maxRetries: ""
+  # -- Time limit for one Present or CleanUp call, retries included. Keep it
+  # below 60s, the Kubernetes API server's request timeout. Default 45s.
+  operationTimeout: ""
+  # -- Time limit for one HTTP request to Contabo. Default 15s.
+  requestTimeout: ""
+
+# -- Log verbosity (klog `-v`). 2 shows every record the webhook creates or
+# deletes. 4 or more shows each Contabo API call.
+logLevel: 2
+
+image:
+  # -- Image repository. The same image is on Docker Hub as docker.io/hayone/cert-manager-webhook-contabo.
+  repository: ghcr.io/hayone1/cert-manager-webhook-contabo
+  # -- Image tag. Defaults to the chart's appVersion.
+  tag: ""
+  # -- Image digest (sha256:...). When set, it is used instead of the tag.
+  digest: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# -- Number of webhook pods. Use 2 or more, plus `podDisruptionBudget`, if
+# cert-manager must be able to renew certificates during node maintenance.
+replicaCount: 1
+
+podDisruptionBudget:
+  # -- Create a PodDisruptionBudget. Only useful with replicaCount 2 or more.
+  enabled: false
+  # -- Pods that must stay up during voluntary disruptions.
+  minAvailable: 1
+
+# -- Port the webhook listens on inside the pod. A high port, so it runs
+# without any Linux capabilities.
+securePort: 4443
+
+service:
+  type: ClusterIP
+  port: 443
+
+# Certificates for the webhook's own HTTPS server. cert-manager issues them
+# from a small CA that only this chart uses.
+pki:
+  # -- Lifetime of the CA certificate.
+  caDuration: 43800h  # 5 years
+  # -- Lifetime of the serving certificate. cert-manager renews it at 2/3 of
+  # its life, and the webhook reloads it without a restart.
+  servingCertificateDuration: 8760h  # 1 year
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 48Mi
+  limits:
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  privileged: false
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  httpGet:
+    scheme: HTTPS
+    path: /livez
+    port: https
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    scheme: HTTPS
+    path: /readyz
+    port: https
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Extra environment variables for the webhook container.
+extraEnv: []
+
+podAnnotations: {}
+podLabels: {}
+priorityClassName: ""
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
