@@ -60,7 +60,7 @@ Not security problems (open a normal issue instead):
 You can check that an image really came from this repository (needs cosign 3 or newer):
 
 ```sh
-cosign verify ghcr.io/hayone1/cert-manager-webhook-contabo:0.1.1 \
+cosign verify ghcr.io/hayone1/cert-manager-webhook-contabo:0.1.2 \
   --certificate-identity-regexp '^https://github.com/hayone1/cert-manager-webhook-contabo/.github/workflows/release.yml@refs/tags/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```

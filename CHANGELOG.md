@@ -6,6 +6,23 @@ follow [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-12
+
+### Security
+
+- Built with Go 1.27.4. Go 1.27.3 had GO-2026-6859, a bug that can crash an
+  HTTP/1 server.
+- Updated the etcd client modules to v3.7.1 (GO-2026-6107) and
+  `golang.org/x/crypto` to v0.59.0 (GO-2026-5932).
+
+### Changed
+
+- The client cache no longer stores a SHA-256 hash of the Contabo
+  credentials. It keys each cached client by the credentials themselves,
+  which stay in memory only. A changed password still gets a new client at
+  once.
+- Updated `github.com/miekg/dns`.
+
 ## [0.1.1] - 2026-11-05
 
 ### Fixed
@@ -44,6 +61,7 @@ follow [semantic versioning](https://semver.org/).
   maintainers.
 - Signed multi-arch images on GHCR and Docker Hub, signed OCI Helm chart.
 
-[Unreleased]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/hayone1/cert-manager-webhook-contabo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/hayone1/cert-manager-webhook-contabo/releases/tag/v0.1.0
