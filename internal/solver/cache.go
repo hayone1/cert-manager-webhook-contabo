@@ -2,7 +2,6 @@ package solver
 
 import (
 	"context"
-	"crypto/sha256"
 	"sync"
 	"time"
 
@@ -24,11 +23,13 @@ const (
 // access token, rate limit and zone list are shared by every challenge
 // that uses the same account. Several issuers may use different accounts.
 //
-// The key is a SHA-256 hash of the API URLs and all four credentials, so a
-// rotated password gets a fresh client and token at once.
+// The key is the four credentials themselves (kept only in memory, like the
+// client that uses them), so a rotated password gets a fresh client and token
+// at once. They are not hashed: a fast hash of a password is still a weak
+// password hash, and a map key needs no hashing.
 type clientCache struct {
 	mu      sync.Mutex
-	entries map[[sha256.Size]byte]*account
+	entries map[contabo.Credentials]*account
 	newFn   func(contabo.Credentials) (*contabo.Client, error)
 	now     func() time.Time
 }
@@ -45,22 +46,11 @@ type account struct {
 }
 
 func newClientCache(newFn func(contabo.Credentials) (*contabo.Client, error), now func() time.Time) *clientCache {
-	return &clientCache{entries: map[[sha256.Size]byte]*account{}, newFn: newFn, now: now}
-}
-
-func cacheKey(c contabo.Credentials) [sha256.Size]byte {
-	h := sha256.New()
-	for _, s := range []string{c.ClientID, c.ClientSecret, c.APIUser, c.APIPassword} {
-		h.Write([]byte(s))
-		h.Write([]byte{0})
-	}
-	var k [sha256.Size]byte
-	copy(k[:], h.Sum(nil))
-	return k
+	return &clientCache{entries: map[contabo.Credentials]*account{}, newFn: newFn, now: now}
 }
 
 func (cc *clientCache) get(creds contabo.Credentials) (*account, error) {
-	key := cacheKey(creds)
+	key := creds
 	now := cc.now()
 
 	cc.mu.Lock()
@@ -90,7 +80,7 @@ func (cc *clientCache) get(creds contabo.Credentials) (*account, error) {
 }
 
 func (cc *clientCache) evictOldest() {
-	var oldestKey [sha256.Size]byte
+	var oldestKey contabo.Credentials
 	var oldest time.Time
 	first := true
 	for k, e := range cc.entries {
